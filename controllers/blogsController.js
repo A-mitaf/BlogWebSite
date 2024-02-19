@@ -1,6 +1,6 @@
 const data = {
-    blogs: require('../../model/blogs.json').blogs,
-    archiveBlogs: require('../../model/archiveBlogs.json'),
+    blogs: require('../model/blogs.json').blogs,
+    archiveBlogs: require('../model/archiveBlogs.json'),
     setBlogs: function (data) { this.blogs = data },
     setArchiveBlogs: function (data) { this.archiveBlogs = data}
 };
@@ -21,7 +21,7 @@ const path = require('path');
 // };
 
 const usersDB = {
-    users: require('../../model/users.json')
+    users: require('../model/users.json')
     // setUsers: function (data) { this.users = data }
 }
 
@@ -214,74 +214,44 @@ const getAllPostsByName = (req, res) => {
     }
 };
 
-// const archiveBlog = async(req, res) => {
-//     const blogId = req.body.id;
-//     const blogIndex = data.blogs.findIndex(blg => blg.id === blogId);
-
-//     if (blogIndex === -1) {
-//         return res.status(404).json({ "message": `Blog ID ${blogId} not found` });
-//     }
-//     const filteredArchiveBlogs = data.blogs.filter(blg => blg.id == blogId);
-//     data.setArchiveBlogs(blogIndex)
-//     const filePath1 = path.resolve(__dirname, '../model/archiveBlogs.json');
-//     try {
-//         await fs.writeFile(filePath1, JSON.stringify({ blogs: filteredArchiveBlogs }, null, 2));
-//         res.json(filteredArchiveBlogs);
-//     } catch (error) {
-//         console.error('Error writing to blogs.json:', error);
-//         res.status(500).json({ 'message': 'Internal Server Error.' });
-//     }
-
-//     const filteredBlogs = data.blogs.filter(blg => blg.id !== blogId);
-
-//     // Update the in-memory data
-//     data.setBlogs(filteredBlogs);
-
-//     // Write the updated blogs array back to the JSON file
-//     const filePath = path.resolve(__dirname, '../model/blogs.json');
-
-//     try {
-//         await fs.writeFile(filePath, JSON.stringify({ blogs: filteredBlogs }, null, 2));
-//         res.json(filteredBlogs);
-//     } catch (error) {
-//         console.error('Error writing to blogs.json:', error);
-//         res.status(500).json({ 'message': 'Internal Server Error.' });
-//     }
-    
-// };
-
 const archiveBlog = async (req, res) => {
-    const blogId = req.params.id; 
+    const blogId = req.params.id;
 
     const blogIndex = data.blogs.findIndex(blg => blg.id === blogId);
     if (blogIndex === -1) {
         return res.status(404).json({ "message": `Blog ID ${blogId} not found` });
     }
 
-    const archivedBlog = data.blogs[blogIndex]; 
-
-    const filteredBlogs = data.blogs.filter(blg => blg.id !== blogId); 
-
-    // Mettez à jour les données en mémoire
+    const archivedBlog = data.blogs[blogIndex];
+    const filteredBlogs = data.blogs.filter(blg => blg.id !== blogId);
     data.setBlogs(filteredBlogs);
 
-    // Chemin vers le fichier JSON où les blogs sont stockés
     const blogsFilePath = path.resolve(__dirname, '../model/blogs.json');
+    const archiveFilePath = path.resolve(__dirname, '../model/archiveBlogs.json');
 
     try {
-        // Écrivez le contenu mis à jour dans blogs.json (après avoir supprimé le blog à archiver)
         await fs.writeFile(blogsFilePath, JSON.stringify({ blogs: filteredBlogs }, null, 2));
     } catch (error) {
         console.error('Error writing to blogs.json:', error);
         return res.status(500).json({ 'message': 'Internal Server Error.' });
     }
 
-    // Chemin vers le fichier JSON où les blogs archivés seront stockés
-    const archiveFilePath = path.resolve(__dirname, '../model/archiveBlogs.json');
-
     try {
-        // Écrivez le blog archivé dans archiveBlogs.json
-        await fs.writeFile(archiveFilePath, JSON.stringify({ blog: archivedBlog }, null, 2));
+        let archivedBlogsData = { blogs: [] };
+        try {
+            const data = await fs.readFile(archiveFilePath, 'utf8');
+            archivedBlogsData = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') {
+                console.error('Error reading from archiveBlogs.json:', error);
+                throw error; // Lancer une exception si l'erreur n'est pas due à un fichier inexistant
+            }
+            // Si le fichier n'existe pas, continuer avec un objet vide
+        }
+
+        archivedBlogsData.blogs.push(archivedBlog); // Ajoutez le blog archivé à la liste
+
+        await fs.writeFile(archiveFilePath, JSON.stringify(archivedBlogsData, null, 2));
         res.json({ "message": `Blog ID ${blogId} archived successfully` });
     } catch (error) {
         console.error('Error writing to archiveBlogs.json:', error);
