@@ -1,0 +1,28 @@
+{
+  "blogs": [
+    {
+      "id": 1,
+      "userId": "gsfwgfg",
+      "title": "First Blog",
+      "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
+      "user": "John Doe",
+      "date": "2024-02-16"
+    },
+    {
+      "id": 2,
+      "userId": "gsfwgfg",
+      "title": "Second Blog",
+      "content": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
+      "user": "Jane Smith",
+      "date": "2024-02-15"
+    },
+    {
+      "id": 3,
+      "userId": "gsfwgfg",
+      "title": "Third Blog",
+      "content": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...",
+      "user": "James Johnson",
+      "date": "2024-02-14"
+    }
+  ]
+}
